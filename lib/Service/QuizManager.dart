@@ -1,53 +1,44 @@
 import 'package:trivia/Service/Question.dart';
 import 'Option.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert' as converter;
+import 'package:html_unescape/html_unescape.dart';
 
+var unescape = HtmlUnescape();
 class QuizManager {
   QuizManager(){
-    _questions.add(
-      Question('Who discovered penicillin?',
-          [
-        Option('Alexander Fleming', 10),
-        Option('Louis Pasteur', 5),
-        Option('Marie Curie', 0),
-        Option('Newton', -10),
-      ])
-    );
-    _questions.add(
-        Question('Which planet has the most gravity?',
-            [
-              Option('Jupiter', 10),
-              Option('Mars', 5),
-              Option('Sun', 0),
-              Option('Moon', -10),
-            ])
-    );
-    _questions.add(
-        Question('How many molecules of oxygen does ozone have?',
-            [
-              Option('3', 10),
-              Option('5', 5),
-              Option('4', 0),
-              Option('0', -10),
-            ])
-    );
-    _questions.add(
-        Question('Which planet is the hottest in the solar system?',
-            [
-              Option('Venus', 10),
-              Option('Mars', 5),
-              Option('Pluto', 0),
-
-            ])
-    );
-
-
-
-    for (var question in _questions){
-      question.options.shuffle();
-    }
 
   }
+  Future<void> loadQuestions(int numberOfQuestions,int category, String difficulty) async {
 
+    var url =
+        'https://opentdb.com/api.php?amount=$numberOfQuestions&category=$category&difficulty=$difficulty&type=multiple';
+    var response = await http.get(url);
+    print(response.statusCode);
+    if (response.statusCode == 200) {
+
+      Map<String, dynamic> json = converter.jsonDecode(response.body);
+
+      for (int i = 0; i < json['results'].length; i++) {
+        var questionJson = json['results'][i];
+        print(unescape.convert(questionJson['question']));
+        print(questionJson['correct_answer']);
+        print(questionJson['incorrect_answers']);
+        List<Option> options = [];
+        options.add(Option(questionJson['correct_answer'], 10));
+        for (int j = 0; j < questionJson['incorrect_answers'].length; j++) {
+          options.add(Option(questionJson['incorrect_answers'][j], 0));
+        }
+        Question question = Question(questionJson['question'], options);
+        _questions.add(question);
+      }
+
+      _questions.shuffle();
+      for (var question in _questions) {
+        question.options.shuffle();
+      }
+    }
+  }
 
   List<Question> _questions=[];
   int _score=0;

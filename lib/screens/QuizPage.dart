@@ -2,15 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:trivia/Service/Question.dart';
 import 'package:trivia/Service/QuizManager.dart';
 import 'package:trivia/screens/ResultPage.dart';
+import 'package:html_unescape/html_unescape.dart';
+
+
+var unescape = HtmlUnescape();
 
 class QuizPage extends StatefulWidget {
+  int category;
+  String difficulty;
+  int number;
+  QuizPage({Key key, this.number,  this.category, this.difficulty})
+      : super(key: key);
+
   @override
   _QuizPageState createState() => _QuizPageState();
 }
 
 class _QuizPageState extends State<QuizPage> {
   QuizManager _manager=QuizManager();
-
+  Future<void> quizLoader;
   List<Widget> getOptions(Question question){
     List<Widget> optionButtons=[];
     for(int i=0; i<question.options.length; i++) {
@@ -43,7 +53,7 @@ class _QuizPageState extends State<QuizPage> {
                   .getCurrentQuestion()
                   .options[i].text}',
               style: TextStyle(
-                fontSize: 25,
+                fontSize: 15,
               ),
             ),
           ),
@@ -53,6 +63,11 @@ class _QuizPageState extends State<QuizPage> {
     }
     return optionButtons;
   }
+  @override
+  void initState(){
+    super.initState();
+    quizLoader = _manager.loadQuestions(widget.number,widget.category,widget.difficulty);
+  }
 
 
   @override
@@ -61,36 +76,47 @@ class _QuizPageState extends State<QuizPage> {
       appBar: AppBar(
         title: Text('Questions ${_manager.getCurrentId()}/${_manager.totalQuestionNumber()}'),
       ),
-      body: Container(
-        padding: EdgeInsets.all(10),
-        child: Column(
-          children: [
-            Expanded(
-              flex:1,
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 30),
-                child: Text(
-                  '${_manager.getCurrentQuestion(). text}',
-                    style: TextStyle(
-                      fontSize:20,
-                    ),
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: getOptions(_manager.getCurrentQuestion())
-                  ),
+      body: FutureBuilder<void>(
+          future: quizLoader,
+          builder: (BuildContext context, AsyncSnapshot<void> snapshot){
+              if (snapshot.connectionState == ConnectionState.done) {
+                return Container(
+                    padding: EdgeInsets.all(10),
+                    child: Column(
+                      children: [
+                        Expanded(
+                          flex:2,
+                          child: Container(
+                            height: 30,
+                            padding: EdgeInsets.symmetric(vertical: 30),
+                            child: Text(
+                              '${unescape.convert(_manager.getCurrentQuestion(). text)}',
+                              style: TextStyle(
+                                fontSize:15,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex:4,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: getOptions(_manager.getCurrentQuestion())
+                            ),
 
-                ),
-            ),
-          ],
-        )
+                          ),
+                        ),
+                      ],
+                    ),
+                );
+              }
+             else {
+                return Center(child: CircularProgressIndicator());
+            }
+          }
       ),
     );
   }
