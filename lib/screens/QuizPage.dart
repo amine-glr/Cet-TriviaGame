@@ -53,7 +53,7 @@ class _QuizPageState extends State<QuizPage> {
                   .getCurrentQuestion()
                   .options[i].text}',
               style: TextStyle(
-                fontSize: 15,
+                fontSize: 20,
               ),
             ),
           ),
@@ -73,8 +73,10 @@ class _QuizPageState extends State<QuizPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.blueGrey,
       appBar: AppBar(
-        title: Text('Questions ${_manager.getCurrentId()}/${_manager.totalQuestionNumber()}'),
+        title: Text('Questions ${_manager.getCurrentId()}/${widget.number}'),
+
       ),
       body: FutureBuilder<void>(
           future: quizLoader,
@@ -88,11 +90,11 @@ class _QuizPageState extends State<QuizPage> {
                           flex:2,
                           child: Container(
                             height: 30,
-                            padding: EdgeInsets.symmetric(vertical: 30),
+                            padding: EdgeInsets.symmetric(vertical: 30,horizontal: 20),
                             child: Text(
                               '${unescape.convert(_manager.getCurrentQuestion(). text)}',
                               style: TextStyle(
-                                fontSize:15,
+                                fontSize:20,
                               ),
                             ),
                           ),

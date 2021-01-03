@@ -6,9 +6,7 @@ import 'package:html_unescape/html_unescape.dart';
 
 var unescape = HtmlUnescape();
 class QuizManager {
-  QuizManager(){
-
-  }
+  QuizManager();
   Future<void> loadQuestions(int numberOfQuestions,int category, String difficulty) async {
 
     var url =
